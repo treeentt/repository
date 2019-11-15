@@ -11,11 +11,11 @@
 JAR_PATH=/home/MediaAgent/lib/MediaAgent.jar
 
 ########### PARAMETERS ##############
-WATCH_PATH=/home/namwoo/torrent
-MOVIE_PATH=/home/namwoo/media/MOVIE
-TV_PATH=/home/namwoo/media/TV
-SUB_PATH=/home/namwoo/media/SUBTITLE
-USER_ID=namwoo
+WATCH_PATH=/home/user/torrent
+MOVIE_PATH=/home/user/media/MOVIE
+TV_PATH=/home/user/media/TV
+SUB_PATH=/home/user/media/SUBTITLE
+USER_ID=user
 REFRESH_CYCLE=6
 
 RENAME_USE=TRUE
