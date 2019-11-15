@@ -1,0 +1,170 @@
+package com.MediaAgent.main;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.MediaAgent.constants.MAConsts;
+import com.MediaAgent.controller.MovieController;
+import com.MediaAgent.controller.SubtitleController;
+import com.MediaAgent.controller.TvshowController;
+import com.MediaAgent.controller.WatchController;
+import com.MediaAgent.timer.MovieRefresh;
+import com.MediaAgent.timer.SubtitleRefresh;
+import com.MediaAgent.timer.TvshowRefresh;
+import com.MediaAgent.util.MediaAgentUtil;
+
+
+public class MediaAgent implements Runnable {
+	
+	private String agent;
+	private HashMap<String, String> setting;
+	
+	public Map<String, ConcurrentHashMap<String, File>> moviefiles = new ConcurrentHashMap<String, ConcurrentHashMap<String ,File>>();
+	public Map<String, ConcurrentHashMap<String, File>> tvshowfiles = new ConcurrentHashMap<String, ConcurrentHashMap<String ,File>>();
+	public Map<String, ConcurrentHashMap<String, File>> subtitlefiles = new ConcurrentHashMap<String, ConcurrentHashMap<String ,File>>();
+	
+	private ExecutorService mainExecutor = Executors.newFixedThreadPool(4);
+	private ScheduledExecutorService scheduleExecutor = Executors.newScheduledThreadPool(4);
+	private MediaAgentUtil util = new MediaAgentUtil();
+	
+	private Logger log = LoggerFactory.getLogger(MediaAgent.class);
+	
+	public MediaAgent(String agent, HashMap<String, String> setting) {
+		this.agent = agent;
+		this.setting = setting;
+	}
+	
+	public static void main(String[] args) {
+		
+		Thread watch = new Thread(new WatchController(MAConsts.WATCH_DIR));
+		watch.setName("WatchController");
+//		watch.start();
+
+		Thread movie = new Thread(new MovieController(MAConsts.MOVIE_DIR));
+		movie.setName("MovieController");
+//		movie.start();
+		
+		Thread tvshow = new Thread(new TvshowController(MAConsts.TV_DIR));
+		tvshow.setName("TvshowController");
+//		tvshow.start();
+		
+		Thread subtitle = new Thread(new SubtitleController(MAConsts.SUB_DIR));
+		subtitle.setName("SubtitleController");
+//		subtitle.start();
+		
+//		mainExecutor.execute(watch);
+//		mainExecutor.execute(movie);
+//		mainExecutor.execute(tvshow);
+//		mainExecutor.execute(subtitle);
+//		
+//		if(MAConsts.REFRESH_CYCLE != 0) {
+//			scheduleExecutor.scheduleAtFixedRate(new MovieRefresh(MAConsts.MOVIE_DIR), 0, MAConsts.REFRESH_CYCLE, TimeUnit.HOURS);
+//			scheduleExecutor.scheduleAtFixedRate(new TvshowRefresh(MAConsts.TV_DIR), 0, MAConsts.REFRESH_CYCLE, TimeUnit.HOURS);
+//			scheduleExecutor.scheduleAtFixedRate(new SubtitleRefresh(MAConsts.SUB_DIR), 0, MAConsts.REFRESH_CYCLE, TimeUnit.HOURS);
+//		} else {
+//			scheduleExecutor.shutdownNow();
+//		}
+		
+	}
+	
+	public void start() {
+		
+		log.info("==============================================================");
+		log.info("Media Agent Start... ");
+		log.info("WATCH_DIR : " + MAConsts.WATCH_PATH);
+		log.info("MOVIE_DIR : " + MAConsts.MOVIE_PATH);
+		log.info("TVSHOW_DIR : " + MAConsts.TV_PATH);
+		log.info("SUBTITLE_DIR : " + MAConsts.SUB_PATH);
+		if(MAConsts.REFRESH_CYCLE != 0) {
+			log.info("Refresh Cycle : " + MAConsts.REFRESH_CYCLE + " hours...");
+		}
+		log.info("==============================================================");
+		
+	}
+
+	@Override
+	public void run() {
+		
+		String WATCH_PATH = this.setting.get("WATCH_PATH");
+		String MOVIE_PATH = this.setting.get("MOVIE_PATH");
+		String TV_PATH = this.setting.get("TV_PATH");
+		String SUB_PATH = this.setting.get("SUB_PATH");
+		
+		String USER_ID = this.setting.get("USER_ID");
+		String REFRESH_CYCLE = this.setting.get("REFRESH_CYCLE");
+		
+		String RENAME_USE = this.setting.get("RENAME_USE");
+		String RENAME_WORD = this.setting.get("RENAME_WORD");
+		String RENAME_SEPARATOR = this.setting.get("RENAME_SEPARATOR");
+		
+		String OPENSUB_ID = this.setting.get("OPENSUB_ID");
+		String OPENSUB_PW = this.setting.get("OPENSUB_PW");
+		String OPENSUB_LANG = this.setting.get("OPENSUB_LANG");
+		
+		String LOGDIR = this.setting.get("LOGDIR");
+		String LOGLEVEL = this.setting.get("LOGLEVEL");
+		
+		Thread watch = new Thread(new WatchController(new File(WATCH_PATH)));
+		watch.setName("WatchController_" + this.agent);
+
+		Thread movie = new Thread(new MovieController(new File(MOVIE_PATH)));
+		movie.setName("MovieController_" + this.agent);
+		
+		Thread tvshow = new Thread(new TvshowController(new File(TV_PATH)));
+		tvshow.setName("TvshowController_" + this.agent);
+		
+		Thread subtitle = new Thread(new SubtitleController(new File(SUB_PATH)));
+		subtitle.setName("SubtitleController_" + this.agent);
+		
+		this.mainExecutor.execute(watch);
+		this.mainExecutor.execute(movie);
+		this.mainExecutor.execute(tvshow);
+		this.mainExecutor.execute(subtitle);
+		
+		if(MAConsts.REFRESH_CYCLE != 0) {
+			this.scheduleExecutor.scheduleAtFixedRate(new MovieRefresh(MAConsts.MOVIE_DIR), 0, MAConsts.REFRESH_CYCLE, TimeUnit.HOURS);
+			this.scheduleExecutor.scheduleAtFixedRate(new TvshowRefresh(MAConsts.TV_DIR), 0, MAConsts.REFRESH_CYCLE, TimeUnit.HOURS);
+			this.scheduleExecutor.scheduleAtFixedRate(new SubtitleRefresh(MAConsts.SUB_DIR), 0, MAConsts.REFRESH_CYCLE, TimeUnit.HOURS);
+		} else {
+			this.scheduleExecutor.shutdownNow();
+		}
+		
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

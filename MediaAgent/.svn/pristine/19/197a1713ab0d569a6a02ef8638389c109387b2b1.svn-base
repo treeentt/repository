@@ -1,0 +1,249 @@
+//	public void getAllFile(File file) {
+//		//파일인 경우 리스트에 넣음
+//		if(file.isFile()) {
+//			//Subtitles 디렉토리에 들어있는 파일인지 확인
+//			if(!file.getParent().equals(MAConsts.SUB_PATH)) {
+//				//Subtitle이 아닌 경우 medias에 저장
+//				if(!isSubtitle(file) && isMediaFile(file)) {
+//					log.debug("FileName [" + file.getName() +"] isSubtitle [" + isSubtitle(file) +"] add MediaList...");
+//				} else if(isSubtitle(file)) {
+//					log.debug("FileName [" + file.getName() +"] isSubtitle [" + isSubtitle(file) +"] add SubtitleList...");
+//				} else {
+//					log.debug(file.getName() + "은 처리하지 않는 파일입니다.");
+//					file.delete();
+//					log.debug(file.getName() + "을 삭제합니다...");
+//				}
+//			} else if(isSubtitle(file)){
+//				log.debug("FileName [" + file.getName() +"] isSubtitle [" + isSubtitle(file) +"] add SubtitleList...");
+//			}
+//			
+//		//디렉토리인 경우 다시 검사
+//		} else if(file.isDirectory()) {
+//			File[] fileList = file.listFiles();
+//
+//			if(file.hashCode() != MAConsts.WATCH_PATH.hashCode() && fileList.length > 0) {
+//				log.debug("DirName [" + file.getName() +"] add DirectoryList...");
+//			}
+//			
+//			//하위 파일이 있을 경우 Recursive
+//			if(fileList.length > 0) {
+//				for(File tempFile : fileList) {
+//					getAllFile(tempFile);
+//				}
+//			} else {
+//				file.delete();
+//				log.debug("DirName [" + file.getName() +"] ListLength [" + fileList.length + "] delete...");
+//			}
+//		}
+//	}//getAllFile
+	
+//	public void initFile(File homeDir) {
+//		log.info("=============== initFile =================");
+//		MediaAgent.medias 		= new ArrayList<File>();
+//		MediaAgent.subtitles 	= new ArrayList<File>();
+//		MediaAgent.directories 	= new ArrayList<File>();
+//		
+//		getAllFile(homeDir);
+//		
+//		String command = "chown -R " + MAConsts.USER_ID + ":" + MAConsts.USER_ID + " \"" + homeDir.getAbsolutePath() + "\"";
+//		runShell(command);
+//	}
+	
+//	public void sortFiles(File homeDir) {
+//		try {
+//			log.info("=============== sortFile =================");
+//			for(File file : MediaAgent.medias) {
+//				mkDirMvFile(file);
+//			}
+//			
+//		} catch (Exception e) {
+//			log.error(e.toString());
+//		}
+//	}//sortFiles
+
+//	public void mkDirMvFile(File file) {
+//		
+//		try {
+//			String dirName = FilenameUtils.removeExtension(file.getName());
+//			String newDirPath = MAConsts.WATCH_PATH + File.separator + dirName;
+//			File newDir = new File(newDirPath);
+//		
+//			//파일이 존재하고, 디렉토리가 없는 경우
+//			if (!MediaAgent.directories.contains(newDir)) {
+//				//디렉토리 생성 리눅스 명령어로
+//				try {
+//					String command = "mkdir \"" + newDir.getAbsolutePath() + "\" && " + "chown " + MAConsts.USER_ID + ":" + MAConsts.USER_ID + " \"" + newDir.getAbsolutePath() + "\"";
+//					String result = runShell(command);
+//					
+//					if(result.equals(MAConsts.SUCCESS)) {
+//						log.info(command + " Success!");
+//						MediaAgent.directories.add(newDir);
+//						
+//						//해당 파일을 디렉토리 밑으로 이동 리눅스 명령어로
+//						try {
+//							command = "mv -f \"" + file.getAbsolutePath() + "\" \"" + newDir.getAbsolutePath() + file.separator + file.getName() + "\"";
+//							result = runShell(command);
+//
+//							if(result.equals(MAConsts.SUCCESS)) {
+//								File mvMediaFile = new File(newDir.getAbsolutePath() + file.separator + file.getName());
+//								MediaAgent.medias.add(mvMediaFile);
+//								log.info(command + " Success!");
+//							} else if(result.equals(MAConsts.FAIL)) {
+//								log.error(command + " Fail!!!!");
+//							}
+//						} catch (Exception e) {
+//							log.error(e.toString());
+//						}
+//						
+//					} else if(result.equals(MAConsts.FAIL)) {
+//						log.error(command + " Fail!!!!");
+//					}
+//				} catch (Exception e) {
+//					log.error(e.toString());
+//				}
+//			}
+//		} catch (Exception e) {
+//			log.error(e.toString());
+//		}
+//	}
+	
+//	public void storeSubFile(File file) {
+//		
+//		if(file.getParentFile().getName().equals(FilenameUtils.removeExtension(file.getName()))) {
+//			return;
+//		}
+//		
+//		if(file.getParentFile().hashCode() != MAConsts.SUB_DIR.hashCode()) {
+//			log.debug(file.getAbsolutePath() + " is Subtitle... storeSubFile...");
+//			String command = "mv -f \"" + file.getAbsolutePath() + "\" \"" + MAConsts.SUB_DIR.getAbsolutePath() + File.separator + file.getName() + "\"";
+//			if(runShell(command).equals(MAConsts.SUCCESS)) {
+//				MediaAgent.subtitles.add(new File(MAConsts.SUB_DIR.getAbsolutePath() + File.separator + file.getName()));
+//				log.info(command + " Success!");
+//			} else {
+//				log.error(command + " Fail!");
+//			}
+//		}
+//		
+//	}
+
+//	public void copyAllSub() {
+//		log.debug("=============== copySub =================");
+//		try {
+//			for(File sub : MediaAgent.subtitles) {
+//				String subName = FilenameUtils.removeExtension(sub.getName());
+//				log.debug("subName : " + subName + ", subParent : " + sub.getParent());
+//				
+//				//자막파일명과 일치하는 디렉토리가 있을 때
+//				for(int i=0 ; i<MediaAgent.directories.size() ; i++) {
+//					File destDir = MediaAgent.directories.get(i);
+//					
+//					log.debug("subName : " + subName + ", destDir : " + destDir.getName());
+//					
+//					if(subName.equals(destDir.getName())) {
+//						log.debug("서브타이틀 복사 조건 일치!");
+//						//자막파일을 디렉토리 밑으로 복사
+//						String command = "cp \"" + sub.getAbsolutePath() + "\" \"" + destDir.getAbsolutePath() + File.separator + sub.getName() + "\"";
+//						if(runShell(command).equals(MAConsts.SUCCESS)) {
+//							log.info(command + " Success!");
+//						} else {
+//							log.error(command + " Fail!");
+//						}
+//					}
+//				}//for
+//			}
+//		} catch (Exception e) {
+//			log.error(e.toString());
+//		}
+//	}//copyAllSub
+	
+//	public void copySub(File file) {
+//		log.debug("=============== copySub =================");
+//		try {
+//			
+//			String subName = "";
+//			String ext = "";
+//			
+//			if(file.isDirectory()) {
+//				subName = file.getName();
+//				log.info(file.getAbsolutePath() + " is Directory...");
+//			} else {
+//				subName = FilenameUtils.removeExtension(file.getName());
+//				ext = FilenameUtils.getExtension(file.getName());
+//			}
+//			
+//			boolean subExist = false;
+//			
+//			//자막 파일이 아닐 때
+//			if(!isSubtitle(file)) {
+//				log.debug(file.getName() + " is not Subtitle...");
+//				File tempSub = null;
+//				//자막 파일이 존재할 때
+//				for(File f : MediaAgent.subtitles) {
+//					String tempSubName = FilenameUtils.removeExtension(f.getName());
+//					if(tempSubName.equals(subName)) {
+//						subExist = true;
+//						log.info(subName + "의 자막파일이 존재합니다");
+//						tempSub = f;
+//						ext = FilenameUtils.getExtension(f.getName());
+//						break;
+//					}
+//				}
+//				
+//				if(subExist) {
+//					log.debug("subName : " + subName + "." + ext + ", subParent : " + file.getParent());
+//					
+//					//자막파일명과 일치하는 디렉토리가 있을 때
+//					for(int i=0 ; i<MediaAgent.directories.size() ; i++) {
+//						File destDir = MediaAgent.directories.get(i);
+//						
+//						log.debug("subName : " + subName + "." + ext + ", destDir : " + destDir.getName());
+//						
+//						if(subName.equals(destDir.getName())) {
+//							//자막파일을 디렉토리 밑으로 복사
+//							String command = "cp \"" + tempSub.getAbsolutePath() + "\" \"" + destDir.getAbsolutePath() + File.separator + file.getName() + "." + ext + "\"";
+//							if(runShell(command).equals(MAConsts.SUCCESS)) {
+//								log.info(command + " Success!");
+//							} else {
+//								log.error(command + " Fail!");
+//							}
+//						} else {
+//							log.debug(subName + " 자막 파일이 존재하지 않습니다.");
+//						}
+//					}
+//				} else {
+//					log.debug(file.getName() + "의 Sub파일이 없습니다...");
+//					return;
+//				}
+//			}
+//			//자막 파일일 때
+//			else {
+//				log.debug("subName : " + subName + "." + ext + ", subParent : " + file.getParent());
+//				
+//				//자막 디렉토리에 있는 파일만 복사
+//				if(file.getParentFile().getAbsolutePath() == MAConsts.SUB_DIR.getAbsolutePath()) {
+//				//자막파일명과 일치하는 디렉토리가 있을 때
+//					for(int i=0 ; i<MediaAgent.directories.size() ; i++) {
+//						File destDir = MediaAgent.directories.get(i);
+//						
+//						log.debug("subName : " + subName + "." + ext + ", destDir : " + destDir.getName());
+//						
+//						if(subName.equals(destDir.getName())) {
+//							//자막파일을 디렉토리 밑으로 복사
+//							String command = "cp \"" + file.getAbsolutePath() + "\" \"" + destDir.getAbsolutePath() + File.separator + file.getName() + "\"";
+//							String result = runShell(command);
+//							if(result.equals(MAConsts.SUCCESS)) {
+//								log.info(command + " Success!");
+//							} else {
+//								log.error(command + " Fail!");
+//							}
+//						} else {
+//							log.debug(subName + "을 복사할 디렉토리가 없습니다.");
+//						}
+//					}
+//				}
+//			}
+//			
+//		} catch (Exception e) {
+//			log.error(e.toString());
+//		}
+//	}//copySub

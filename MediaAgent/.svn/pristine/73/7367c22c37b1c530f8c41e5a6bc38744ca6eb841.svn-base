@@ -1,0 +1,82 @@
+package com.MediaAgent.main;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import com.MediaAgent.util.MediaAgentUtil;
+
+public class MediaAgentController {
+	
+	public static void main(String[] args) {
+		
+		MediaAgentUtil util = new MediaAgentUtil();
+		
+		Map<String, HashMap<String, String>> settings = util.getIniFileToMap("C:\\workspace\\TestProject\\testDir\\config.ini");
+		
+		ExecutorService executor = Executors.newFixedThreadPool(settings.size());
+		
+		int count = 0;
+		for(String key : settings.keySet()) {
+			HashMap<String, String> set = settings.get(key);
+			
+			String WATCH_PATH = set.get("WATCH_PATH");
+			String MOVIE_PATH = set.get("MOVIE_PATH");
+			String TV_PATH = set.get("TV_PATH");
+			String SUB_PATH = set.get("SUB_PATH");
+			
+			String USER_ID = set.get("USER_ID");
+			String REFRESH_CYCLE = set.get("REFRESH_CYCLE");
+			
+			String RENAME_USE = set.get("RENAME_USE");
+			String RENAME_WORD = set.get("RENAME_WORD");
+			String RENAME_SEPARATOR = set.get("RENAME_SEPARATOR");
+			
+			String OPENSUB_ID = set.get("OPENSUB_ID");
+			String OPENSUB_PW = set.get("OPENSUB_PW");
+			String OPENSUB_LANG = set.get("OPENSUB_LANG");
+			
+			String LOGDIR = set.get("LOGDIR");
+			String LOGLEVEL = set.get("LOGLEVEL");
+			
+			executor.execute(new MediaAgent(key, set));
+			
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+	}
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

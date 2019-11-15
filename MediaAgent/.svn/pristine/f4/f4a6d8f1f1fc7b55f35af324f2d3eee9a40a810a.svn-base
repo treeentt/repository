@@ -1,0 +1,7 @@
+package com.MediaAgent.controller;
+
+public abstract class FileController implements Runnable {
+	
+}
+
+
